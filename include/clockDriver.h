@@ -28,10 +28,15 @@ public class clockDriver()
 	private time_t last_update;
 
 	rgb_matrix::Font hour_font;
+	rgb_matrix::Font *hour_font_outline;
 	rgb_matrix::Font minute_font;
+	rgb_matrix::Font *minute_font_outline;
 	rgb_matrix::Font day_font;
+	rgb_matrix::Font *day_font_outline;
 	rgb_matrix::Font month_font;
+	rgb_matrix::Font *month_font_outline;
 	rgb_matrix::Font year_font;
+	rgb_matrix::Font *year_font_outline;
 
 	//  _____                 _   _                 ____        __
 	// |  ___|   _ _ __   ___| |_(_) ___  _ __     |  _ \  ___ / _|___
@@ -62,14 +67,19 @@ public class clockDriver()
 	public void setAutoUpdate(bool option);
 	public bool getAutoUpdate();
 
-	public void setFont(rgb_matrix::Font f);
-	public void setHourFont(rgb_matrix::Font f);
-	public void setMinuteFont(rgb_matrix::Font f);
-	public void setDayFont(rgb_matrix::Font f);
-	public void setMonthFont(rgb_matrix::Font f);
-	public void setYearFont(rgb_matrix::Font f);
+	public bool setHourFont(std::string f);
+	public bool setHourFont(std::string f, bool outline);
+	public bool setMinuteFont(std::string f);
+	public bool setMinuteFont(std::string f, bool outline);
+	public bool setDayFont(std::string f);
+	public bool setDayFont(std::string f, bool outline);
+	public bool setMonthFont(std::string f);
+	public bool setMonthFont(std::string f, bool outline);
+	public bool setYearFont(std::string f);
+	public bool setYearFont(std::string f, bool outline);
+
+	public bool setFont(std::string f);
 
 	public clockDriver();
 	public int drawClock(FrameCanvas *offscreen);
-
 }
