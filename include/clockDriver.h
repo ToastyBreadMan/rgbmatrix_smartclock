@@ -23,8 +23,6 @@ public class clockDriver()
 	private int year_x; //
 	private int year_y; //
 
-	private bool auto_update;
-
 	private time_t last_update;
 
 	rgb_matrix::Font hour_font;
@@ -64,9 +62,6 @@ public class clockDriver()
 	public void setYearY(int y);
 	public int getYearY();
 
-	public void setAutoUpdate(bool option);
-	public bool getAutoUpdate();
-
 	public bool setHourFont(std::string f);
 	public bool setHourFont(std::string f, bool outline);
 	public bool setMinuteFont(std::string f);
@@ -81,5 +76,5 @@ public class clockDriver()
 	public bool setFont(std::string f);
 
 	public clockDriver();
-	public int drawClock(FrameCanvas *offscreen);
+	public int drawClock(FrameCanvas *offscreen, std::string format);
 }
