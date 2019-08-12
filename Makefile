@@ -1,6 +1,7 @@
 CFLAGS=-Wall -O3 -g -Wextra -Wno-unused-parameter
 CXXFLAGS=$(CFLAGS)
-OBJECTS=smart-clock.o
+SOURCES=$(wildcard src/*.cpp)
+OBJECTS=$(SOURCES:.cpp=.o)
 BINARIES=smart-clock
 
 # Where our library resides. You mostly only need to change the
@@ -17,7 +18,7 @@ all : $(BINARIES)
 $(RGB_LIBRARY): FORCE
 	$(MAKE) -C $(RGB_LIBDIR)
 
-smart-clock: smart-clock.o
+smart-clock: $(OBJECTS)
 
 # All the binaries that have the same name as the object file.q
 % : %.o $(RGB_LIBRARY)
