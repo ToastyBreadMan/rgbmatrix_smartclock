@@ -18,12 +18,9 @@ all : $(BINARIES)
 $(RGB_LIBRARY): FORCE
 	$(MAKE) -C $(RGB_LIBDIR)
 
-smart-clock: $(OBJECTS)
-
-# All the binaries that have the same name as the object file.q
-% : %.o $(RGB_LIBRARY)
-	$(CXX) $< -o $@ $(LDFLAGS)
-
+smart-clock: $(OBJECTS) $(RGB_LIBRARY)
+	$(CXX) -o $@ $^ $(LDFLAGS)
+	
 
 # Since the C example uses the C++ library underneath, which depends on C++
 # runtime stuff, you still have to also link -lstdc++

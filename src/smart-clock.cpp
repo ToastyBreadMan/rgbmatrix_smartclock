@@ -85,7 +85,7 @@ int main(int argc, char **argv)
 		rgb_matrix::DrawText(offscreen, date_font, date_x_orig, date_y_orig + date_font.baseline() - 1,
 							 date_color, NULL, text_buf, 0);
 		
-		DrawBitmap(offscreen, 0, -1, 800, false);
+		DrawBitmap(offscreen, 0, -1, 202, true);
 
 		// Wait till showing new clock
 		clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &next_time, NULL);
