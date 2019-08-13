@@ -112,7 +112,7 @@ int DrawBitmap(FrameCanvas *offscreen, int x_origin, int y_origin, int code, boo
 			break;
 		case 520: // light intensity shower rain 
 		case 521: // shower rain
-			bitmap = isNight ? IMG_a40 : IMG_a04;
+			bitmap = isNight ? IMG_a40 : IMG_a12;
 			break;
 		case 522: // heavy intensity shower rain
 		case 531: // ragged shower rain
