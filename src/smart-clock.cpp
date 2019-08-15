@@ -65,7 +65,7 @@ int main(int argc, char **argv)
 	const int date_x_orig_day = 52;
 	const int date_y_orig_day = 22;
 
-	const Color date_color(241,250,140);
+	const Color date_color(255,255,255);
 	rgb_matrix::Font date_font;
 	if (!date_font.LoadFont("rpi-rgb-led-matrix/fonts/6x9.bdf")) {
 		fprintf(stderr, "Font file failed to load");
