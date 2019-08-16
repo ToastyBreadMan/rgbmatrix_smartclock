@@ -1,20 +1,21 @@
 #include "../include/weather.h"
+#include <ctime>
 
 namespace
 {
-    std::size_t callback(
-            const char* in,
-            std::size_t size,
-            std::size_t num,
-            std::string* out)
-    {
-        const std::size_t totalBytes(size * num);
-        out->append(in, totalBytes);
-        return totalBytes;
-    }
+	std::size_t callback(
+			const char* in,
+			std::size_t size,
+			std::size_t num,
+			std::string* out)
+	{
+		const std::size_t totalBytes(size * num);
+		out->append(in, totalBytes);
+		return totalBytes;
+	}
 }
 
-Weather::Weather(std::string city_id, std::string api_key)
+Weather::Weather(int city_id, std::string api_key)
 {
 	this->city_id = city_id;
 	this->api_key = api_key;
@@ -23,21 +24,28 @@ Weather::Weather(std::string city_id, std::string api_key)
 	this->cur_temp = -1;
 	this->min_temp = -1;
 	this->max_temp = -1;
+
+	this->update_success = false;
+	this->isNight = false;
+
+	if (!this->temp_font.LoadFont(this->font.c_str())) {
+		fprintf(stderr, "Font file at '%s' failed to load", this->font.c_str());
+	}
 }
 
 void updateError(std::string object, nlohmann::json &j)
 {
 	fprintf(stderr, "ERROR: Could not find %s in weather api JSON response\n", object.c_str());
-	fprintf(stderr, "-BEGIN JSON DUMP-\n%s\n--END JSON DUMP--\n", j.dump(4).c_str());
+	fprintf(stderr, "--BEGIN JSON DUMP--\n%s\n--END JSON DUMP--\n", j.dump(4).c_str());
 }
 
 bool Weather::update() 
 {
-    long httpCode;
+	long httpCode;
 	std::string url;
-    std::unique_ptr<std::string> httpData(new std::string());
+	std::unique_ptr<std::string> httpData(new std::string());
 
-    httpCode = 0;
+	httpCode = 0;
 	//url = "api.openweathermap.org/data/2.5/weather?id="
 	//	+ std::string(this->city_id) + "&appid=" + std::string(this->api_key);
 
@@ -47,31 +55,31 @@ bool Weather::update()
 
 	CURL *curl = curl_easy_init();
 
-    // Set remote URL.
-    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+	// Set remote URL.
+	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 
-    // Don't bother trying IPv6, which would increase DNS resolution time.
-    curl_easy_setopt(curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+	// Don't bother trying IPv6, which would increase DNS resolution time.
+	curl_easy_setopt(curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
 
-    // Don't wait forever, time out after 5 seconds.
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5);
+	// Don't wait forever, time out after 5 seconds.
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5);
 
-    // Follow HTTP redirects if necessary.
-    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+	// Follow HTTP redirects if necessary.
+	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 
 
-    // Hook up data handling function.
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, callback);
+	// Hook up data handling function.
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, callback);
 
-    // Hook up data container (will be passed as the last parameter to the
-    // callback handling function).  Can be any pointer type, since it will
-    // internally be passed as a void pointer.
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, httpData.get());
+	// Hook up data container (will be passed as the last parameter to the
+	// callback handling function).  Can be any pointer type, since it will
+	// internally be passed as a void pointer.
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, httpData.get());
 
-    // Run our HTTP GET command, capture the HTTP response code, and clean up.
-    curl_easy_perform(curl);
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpCode);                                                
-    curl_easy_cleanup(curl);
+	// Run our HTTP GET command, capture the HTTP response code, and clean up.
+	curl_easy_perform(curl);
+	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpCode);                                                
+	curl_easy_cleanup(curl);
 
 	if (httpCode == 200) {
 		nlohmann::json j = nlohmann::json::parse(*httpData.get());
@@ -79,6 +87,7 @@ bool Weather::update()
 		auto weather_it = j.find("weather");
 		if (weather_it == j.end()) {
 			updateError("weather", j);
+			this->update_success = false;
 			return false;
 		}
 		else {
@@ -86,62 +95,130 @@ bool Weather::update()
 
 			if (id_it == (*weather_it)[0].end()) {
 				updateError("id", j);
+				this->update_success = false;
 				return false;
 			}
 			else {
-                this->weather_id = id_it->get<int>();
+				this->weather_id = id_it->get<int>();
 			}
 		}
 
-        auto main_it = j.find("main");
-        if (main_it == j.end()) {
+		auto main_it = j.find("main");
+		if (main_it == j.end()) {
 			updateError("main", j);
+			this->update_success = false;
 			return false;
-        }
-        else {
+		}
+		else {
 
-            auto item_it = main_it->find("temp");
-            if (item_it == main_it->end()) {
+			auto item_it = main_it->find("temp");
+			if (item_it == main_it->end()) {
 				updateError("temp", j);
+				this->update_success = false;
 				return false;
-            }
-            else {
-                this->cur_temp = item_it->get<int>();
-            }
+			}
+			else {
+				this->cur_temp = item_it->get<int>();
+			}
 
 			item_it = main_it->find("temp_min");
-            if (item_it == main_it->end()) {
+			if (item_it == main_it->end()) {
 				updateError("temp_min", j);
+				this->update_success = false;
 				return false;
-            }
-            else {
-                this->min_temp = item_it->get<int>();
-            }
+			}
+			else {
+				this->min_temp = item_it->get<int>();
+			}
 
 			item_it = main_it->find("temp_max");
-            if (item_it == main_it->end()) {
+			if (item_it == main_it->end()) {
 				updateError("temp_max", j);
+				this->update_success = false;
 				return false;
-            }
-            else {
-                this->max_temp = item_it->get<int>();
-            }
+			}
+			else {
+				this->max_temp = item_it->get<int>();
+			}
 
-        }
+		}
 
+		auto sys_it = j.find("sys");
+		if (sys_it == j.end()) {
+			updateError("sys", j);
+			this->update_success = false;
+			return false;
+		}
+		else {
+			int sunrise, sunset;
+			std::time_t now;
+
+			auto item_it = sys_it->find("sunrise");
+			if (item_it == sys_it->end()) {
+				updateError("sunrise", j);
+				this->update_success = false;
+				return false;
+			}
+			else {
+				sunrise = item_it->get<int>();
+			}
+
+			item_it = sys_it->find("sunset");
+			if (item_it == sys_it->end()) {
+				updateError("sunset", j);
+				this->update_success = false;
+				return false;
+			}
+			else {
+				sunset = item_it->get<int>();
+			}
+
+			now = std::time(nullptr);
+			this->isNight = (now > sunset || now < sunrise);
+		}
 	}
 	else {
 		fprintf(stderr, "Error: Could not get data from %s\n", url.c_str());
-		fprintf(stderr, "\tReturn code: %lld\n", httpCode);
+		fprintf(stderr, "\tReturn code: %ld\n", httpCode);
+		this->update_success = false;
 		return false;
 	}
 
+	printf("min=%d max=%d cur=%d id=%d\n", this->min_temp, this->max_temp, this->cur_temp, this->weather_id);
 
+	this->update_success = true;
 	return true;
 }
 
-bool Weather::draw() {
-	printf("id=%d\ntemp=%d\nmax-temp=%d\nmin-temp=%d\n", 
-		this->weather_id, this->cur_temp, this->max_temp, this->min_temp);
+bool Weather::draw(FrameCanvas *offscreen) {
+	std::time_t now = std::time(nullptr);
+	std::string display_temp;
+	// Would like to include this in the header but
+	// g++ freaks out when there is a constructor in the class definition
+	rgb_matrix::Color temp_color(241,250,140);
+
+	if (this->update_success == false) {
+
+		// TODO: Make error glyph in img-weather.h
+		display_temp = "ERR";
+
+		rgb_matrix::Color err_color(255,85,85);
+		rgb_matrix::DrawText(offscreen, this->temp_font, 2,
+				2 + this->temp_font.baseline(), err_color, NULL, "!!!" , 0);
+	}
+	else {
+
+		display_temp = std::to_string(this->cur_temp) + "°";
+
+		// TODO: Check time
+		// Draw weather bitmap
+		DrawBitmap(offscreen, 0, -1, this->weather_id, this->isNight);
+	}
+
+	// Draw temp
+	rgb_matrix::DrawText(offscreen, this->temp_font, this->temp_x_orig,
+			this->temp_y_orig + this->temp_font.baseline(), temp_color, NULL, display_temp.c_str() , 0);
+
+
 	return true;
 }

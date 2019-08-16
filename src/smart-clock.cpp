@@ -1,6 +1,7 @@
 #include "../rpi-rgb-led-matrix/include/led-matrix.h"
 #include "../rpi-rgb-led-matrix/include/graphics.h"
-#include "../include/bitmap-draw.h"
+#include "../include/weather.h"
+#include "../include/config.h"
 
 #include <getopt.h>
 #include <signal.h>
@@ -27,6 +28,7 @@ int main(int argc, char **argv)
 {
 	RGBMatrix::Options matrix_options;
 	rgb_matrix::RuntimeOptions runtime_options;
+	Weather weather(OPEN_WEATHER_CITY, OPEN_WEATHER_KEY);
 
 	// Give rgb_matrix it's options, we must feed the beast
 	if(!rgb_matrix::ParseOptionsFromFlags(&argc, &argv, &matrix_options, &runtime_options))
@@ -72,24 +74,14 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	// FIXME: TEMP TEMP
-	const char *temp = "78°";
-	const int temp_x_orig = 6;
-	const int temp_y_orig = 23;
-
-	const Color temp_color(241,250,140);
-	rgb_matrix::Font temp_font;
-	if (!temp_font.LoadFont("rpi-rgb-led-matrix/fonts/5x7.bdf")) {
-		fprintf(stderr, "Font file failed to load");
-		return 1;
-	}
-
 	// Stuff for handling time
 	char text_buf[256];	
 	struct timespec next_time;
 	next_time.tv_sec = time(NULL);
 	next_time.tv_nsec = 0;
 	struct tm tm;
+
+	weather.update();
 
 	// Main draw loop
 	while(!interrupt_signal)
@@ -117,14 +109,9 @@ int main(int argc, char **argv)
 		strftime(text_buf, sizeof(text_buf), date_time_fmt_day, &tm);
 		rgb_matrix::DrawText(offscreen, date_font, date_x_orig_day, date_y_orig_day + date_font.baseline(),
 							 date_color, NULL, text_buf, 0);
+
+		weather.draw(offscreen);
 	
-		// Draw temp
-		rgb_matrix::DrawText(offscreen, temp_font, temp_x_orig, temp_y_orig + temp_font.baseline(),
-							 temp_color, NULL, temp, 0);
-
-		
-		DrawBitmap(offscreen, 0, -1, 520, false);
-
 		// Wait till showing new clock
 		clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &next_time, NULL);
 
