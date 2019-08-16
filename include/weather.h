@@ -20,9 +20,9 @@ class Weather
 		int city_id;
 		std::string api_key;
 
-		const std::string font = "rpi-rgb-led-matrix/fonts/5x7.bdf";
-		const int temp_x_orig = 6;
-		const int temp_y_orig = 24;
+		const std::string font = WEATHER_FONT;
+		const int temp_x_orig = WEATHER_X_ORIGIN;
+		const int temp_y_orig = WEATHER_Y_ORIGIN;
 		rgb_matrix::Font temp_font;
 	public:
 		Weather(int, std::string);
