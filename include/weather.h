@@ -5,6 +5,7 @@
 #include "../rpi-rgb-led-matrix/include/graphics.h"
 #include "json.hpp"
 #include "bitmap-draw.h"
+#include "config.h"
 
 class Weather
 {
