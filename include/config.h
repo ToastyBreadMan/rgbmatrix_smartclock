@@ -1,11 +1,50 @@
+/*    _    ____ ___ 
+     / \  |  _ \_ _|
+    / _ \ | |_) | | 
+   / ___ \|  __/| | 
+  /_/   \_\_|  |___|
+*/                   
+
 // Openweathermap api things
 #define OPEN_WEATHER_KEY "INPUT_OWM_KEY_HERE"
 #define OPEN_WEATHER_CITY 1234567 // City ID
+
+
+/* __  __       _       
+  |  \/  | __ _(_)_ __  
+  | |\/| |/ _` | | '_ \
+  | |  | | (_| | | | | |
+  |_|  |_|\__,_|_|_| |_|
+*/                      
+
+// Display settings
+#define NORMAL_BRIGHTNESS 100
+#define DIM_BRIGHTNESS 50
+#define DIM_AT_NIGHT true
+
+ 
+/*__        __         _   _               
+  \ \      / /__  __ _| |_| |__   ___ _ __ 
+   \ \ /\ / / _ \/ _` | __| '_ \ / _ \ '__|
+    \ V  V /  __/ (_| | |_| | | |  __/ |   
+     \_/\_/ \___|\__,_|\__|_| |_|\___|_|   
+*/
 
 // weather.h
 #define WEATHER_FONT "rpi-rgb-led-matrix/fonts/5x7.bdf"
 #define WEATHER_X_ORIGIN 6
 #define WEATHER_Y_ORIGIN 24
+
+#define WEATHER_COLOR_R 241
+#define WEATHER_COLOR_G 250
+#define WEATHER_COLOR_B 140
+
+/*  ____ _            _    
+   / ___| | ___   ___| | __
+  | |   | |/ _ \ / __| |/ /
+  | |___| | (_) | (__|   < 
+   \____|_|\___/ \___|_|\_\
+*/                       
 
 // clock.h
 #define CLOCK_FMT "%H:%M"

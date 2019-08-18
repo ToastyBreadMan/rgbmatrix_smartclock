@@ -1,4 +1,5 @@
 #include "../include/weather.h"
+#include "../include/config.h"
 #include <ctime>
 
 namespace
@@ -26,12 +27,16 @@ Weather::Weather(int city_id, std::string api_key)
 	this->max_temp = -1;
 
 	this->update_success = false;
-	this->isNight = false;
+	this->is_night = false;
 
 	if (!this->temp_font.LoadFont(this->font.c_str())) {
 		fprintf(stderr, "Font file at '%s' failed to load", this->font.c_str());
 	}
 }
+
+bool Weather::isNight() {
+	return this->is_night;
+} 
 
 void updateError(std::string object, nlohmann::json &j)
 {
@@ -51,7 +56,7 @@ bool Weather::update()
 
 	url = "samples.openweathermap.org/data/2.5/weather?id=2172797&appid=b6907d289e10d714a6e88b30761fae22";
 
-	printf("--> %s\n", url.c_str());
+	printf("--> Pulling weather...\n");
 
 	CURL *curl = curl_easy_init();
 
@@ -174,7 +179,7 @@ bool Weather::update()
 			}
 
 			now = std::time(nullptr);
-			this->isNight = (now > sunset || now < sunrise);
+			this->is_night = (now > sunset || now < sunrise);
 		}
 	}
 	else {
@@ -184,18 +189,15 @@ bool Weather::update()
 		return false;
 	}
 
-	printf("min=%d max=%d cur=%d id=%d\n", this->min_temp, this->max_temp, this->cur_temp, this->weather_id);
+	printf("\tDone!\n");
 
 	this->update_success = true;
 	return true;
 }
 
 bool Weather::draw(FrameCanvas *offscreen) {
-	std::time_t now = std::time(nullptr);
 	std::string display_temp;
-	// Would like to include this in the header but
-	// g++ freaks out when there is a constructor in the class definition
-	rgb_matrix::Color temp_color(241,250,140);
+	rgb_matrix::Color temp_color(WEATHER_COLOR_R, WEATHER_COLOR_G, WEATHER_COLOR_B);
 
 	if (this->update_success == false) {
 
@@ -212,7 +214,7 @@ bool Weather::draw(FrameCanvas *offscreen) {
 
 		// TODO: Check time
 		// Draw weather bitmap
-		DrawBitmap(offscreen, 0, -1, this->weather_id, this->isNight);
+		DrawBitmap(offscreen, 0, -1, this->weather_id, this->is_night);
 	}
 
 	// Draw temp

@@ -23,6 +23,8 @@ int convert_color(int c)
 		case 7:
 			return 255;
 	}
+
+	return 0;
 }
 
 // Draw bitmap array from img_weather.h

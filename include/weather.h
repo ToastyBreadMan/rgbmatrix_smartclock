@@ -11,7 +11,7 @@ class Weather
 {
 	private:
 		bool update_success;
-		bool isNight;
+		bool is_night;
 
 		int weather_id;
 		int min_temp;
@@ -27,6 +27,7 @@ class Weather
 		rgb_matrix::Font temp_font;
 	public:
 		Weather(int, std::string);
+		bool isNight();
 		bool update();
 		bool draw(FrameCanvas*);
 };

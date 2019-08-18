@@ -25,4 +25,3 @@ A clock to display the time, date, and weather info
 
 ## General TODO
 * Add real curl command to pull weather data
-* Make config.h more configurable

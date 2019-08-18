@@ -18,10 +18,12 @@ static void interruptHandler(int signo){
 	interrupt_signal = true;
 }
 
-// TODO: Make a better usage function
 int usage(char *program_name)
 {
-	printf("Whoops!\n");
+	printf("USAGE: %s [rgb-matrix-options]\n", program_name);
+	printf("\tMost configurable options can be located in the\n");
+	printf("\tinclude/config.h file.\n");
+
 	return 1;
 }
 
@@ -40,21 +42,37 @@ int main(int argc, char **argv)
 	RGBMatrix *matrix = rgb_matrix::CreateMatrixFromOptions(matrix_options, runtime_options);
 	FrameCanvas *offscreen = matrix->CreateFrameCanvas();
 	
+	matrix->SetBrightness(NORMAL_BRIGHTNESS);
+	
 	// Hande our interrupts
 	signal(SIGTERM, interruptHandler);
 	signal(SIGINT, interruptHandler);
 
 	// Stuff for handling time
-	struct timespec next_time;
+	struct timespec next_time, next_weather_update;
 	next_time.tv_sec = time(NULL);
 	next_time.tv_nsec = 0;
-
-	weather.update();
+	next_weather_update = next_time;
 
 	// Main draw loop
 	while(!interrupt_signal)
 	{
 		offscreen->Clear();
+
+		// Get time every 5 minutes
+		if (next_weather_update.tv_sec <= next_time.tv_sec) {
+			weather.update();
+			next_weather_update.tv_sec = next_time.tv_sec + (60 * 5);
+		}
+
+		if (DIM_AT_NIGHT) {
+			if (weather.isNight() == true){
+				matrix->SetBrightness(DIM_BRIGHTNESS);
+			}
+			else {
+				matrix->SetBrightness(NORMAL_BRIGHTNESS);
+			}
+		}
 
 		clock.draw(offscreen, next_time);
 		weather.draw(offscreen);
@@ -72,6 +90,6 @@ int main(int argc, char **argv)
 	matrix->Clear();
 	delete matrix;
 
-	printf("\nYeet\n");
+	printf("\nInterupt recieved exiting...\n");
 	return 0;
 }
