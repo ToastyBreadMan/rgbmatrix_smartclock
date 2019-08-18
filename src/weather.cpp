@@ -51,10 +51,10 @@ bool Weather::update()
 	std::unique_ptr<std::string> httpData(new std::string());
 
 	httpCode = 0;
-	//url = "api.openweathermap.org/data/2.5/weather?id="
-	//	+ std::string(this->city_id) + "&appid=" + std::string(this->api_key);
+	url = "api.openweathermap.org/data/2.5/weather?id="
+		+ std::to_string(this->city_id) + "&appid=" + this->api_key + "&units=imperial";
 
-	url = "samples.openweathermap.org/data/2.5/weather?id=2172797&appid=b6907d289e10d714a6e88b30761fae22";
+	//url = "samples.openweathermap.org/data/2.5/weather?id=2172797&appid=b6907d289e10d714a6e88b30761fae22";
 
 	printf("--> Pulling weather...\n");
 
