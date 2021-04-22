@@ -1,14 +1,23 @@
 #include <PxMatrix.h>
 #include <WiFi.h>
 #include <ezTime.h>
+#include <HTTPClient.h>
 #include "include/GFX_fonts/GFX_fonts/Font5x7Fixed.h"
 
 //---Danger Zone---
 #include "include/key.h"
 //-----------------
 
+//---Time---
 #define MYTIMEZONE "America/New_York"
-bool TWELVEHOUR = true;
+const bool TWELVEHOUR = true;
+//----------
+
+//---Weather---
+const char openweatherendpoint[] = "http://api.openweathermap.org/data/2.5/weather?q=";
+const char appid[] = "&appid=";
+const char openweatherunits[] = "&units=imperial";
+//-------------
 
 // Pins for LED MATRIX
 #define P_LAT 22
@@ -93,6 +102,20 @@ void setup() {
   waitForSync();
   updateNTP();
   display_update_enable(true);
+
+
+  HTTPClient http;
+  char *url = (char*)calloc(1, sizeof(openweatherendpoint) + sizeof(openweathercityid) + sizeof(appid) + sizeof(openweatherapi) + sizeof(openweatherunits)+1);
+  sprintf(url, "%s%s%s%s%s", openweatherendpoint, openweathercityid, appid, openweatherapi, openweatherunits);
+  int httpCode = http.GET();
+  
+  String payload = http.getString();
+  Serial.println(httpCode);
+  Serial.println(payload);
+
+  http.end();
+  free(url);
+  
 }
 
 
