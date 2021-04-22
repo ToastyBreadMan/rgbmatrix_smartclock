@@ -2,4 +2,4 @@
 _tests/
 smart-clock
 *~
-#esp32_clock/include/key.h
+esp32_clock/include/key.h
