@@ -1,3 +1,4 @@
 *.o
 _tests/
 smart-clock
+*~
