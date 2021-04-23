@@ -2,6 +2,7 @@
 #include <WiFi.h>
 #include <ezTime.h>
 #include <HTTPClient.h>
+#include <ArduinoJson.h>
 #include "include/GFX_fonts/GFX_fonts/Font5x7Fixed.h"
 
 //---Danger Zone---
@@ -14,9 +15,11 @@ const bool TWELVEHOUR = true;
 //----------
 
 //---Weather---
+#define ARDUINOJSON_USE_DOUBLE 1
 const char openweatherendpoint[] = "http://api.openweathermap.org/data/2.5/weather?q=";
 const char appid[] = "&appid=";
 const char openweatherunits[] = "&units=imperial";
+const char testjson[] = "{\"coord\":{\"lon\":-83.9207,\"lat\":35.9606},\"weather\":[{\"id\":800,\"main\":\"Clear\",\"description\":\"clear sky\",\"icon\":\"01n\"}],\"base\":\"stations\",\"main\":{\"temp\":42.46,\"feels_like\":42.46,\"temp_min\":39.2,\"temp_max\":44.6,\"pressure\":1022,\"humidity\":87},\"visibility\":10000,\"wind\":{\"speed\":2.98,\"deg\":80,\"gust\":4.52},\"clouds\":{\"all\":1},\"dt\":1619151751,\"sys\":{\"type\":1,\"id\":3818,\"country\":\"US\",\"sunrise\":1619175115,\"sunset\":1619223336},\"timezone\":-14400,\"id\":4634946,\"name\":\"Knoxville\",\"cod\":200}";
 //-------------
 
 // Pins for LED MATRIX
@@ -72,6 +75,67 @@ void display_update_enable(bool is_enable)
   }
 }
 
+struct weatherStruct {
+  bool updated;
+  int id;
+  double cur_temp;
+  double min_temp;
+  double max_temp;
+  int humidity;
+  int64_t sunrise;
+  int64_t sunset;
+}
+
+weatherStruct getWeather(char *url) {
+  HTTPClient http;
+  weatherStruct weather;
+
+  weather.updated = false;
+
+  http.begin(url);
+  //int httpCode = http.GET();
+  
+  String payload = http.getString();
+
+  if(httpCode > 0){
+    Serial.print("HTTP GET failed with code:");
+    Serial.println(httpCode);
+    return weather;
+  }
+  
+  DynamicJsonDocument doc(24576);
+  DeserializationError error = deserializeJson(doc, payload.c_str(), payload.length());
+
+  if(error) {
+    Serial.print(F("deserializeJson() failed: "));
+    Serial.println(error.f_str());
+    return weather;
+  }
+  
+  JsonObject weather_0 = doc["weather"][0];
+  if(weather_0 != NULL) {
+    int weather_0_id = weather_0["id"];
+    if(weather_0_id != NULL) {
+      weather.id = weather_0_id;
+    }
+  } else { 
+    Serial.println("No weather...");
+  }
+  
+  JsonObject main = doc["main"];
+  if(main != NULL) {
+    double main_temp = main["temp"];
+    if(main_temp != NULL) {
+      Serial.print("Weather temp = ");
+      Serial.println(main_temp);
+    } 
+  } else { 
+    Serial.println("No main...");
+  }
+
+  http.end();
+  return payload;
+}
 
 void setup() {
   // put your setup code here, to run once:
@@ -99,23 +163,14 @@ void setup() {
   ezt::setInterval(300);
   ezt::setDebug(INFO);
 
+  char *url = (char*)calloc(1, sizeof(openweatherendpoint) + sizeof(openweathercityid) + sizeof(appid) + sizeof(openweatherapi) + sizeof(openweatherunits)+1);
+  sprintf(url, "%s%s%s%s%s", openweatherendpoint, openweathercityid, appid, openweatherapi, openweatherunits);
+  getWeather(url);
+  free(url);
+
   waitForSync();
   updateNTP();
   display_update_enable(true);
-
-
-  HTTPClient http;
-  char *url = (char*)calloc(1, sizeof(openweatherendpoint) + sizeof(openweathercityid) + sizeof(appid) + sizeof(openweatherapi) + sizeof(openweatherunits)+1);
-  sprintf(url, "%s%s%s%s%s", openweatherendpoint, openweathercityid, appid, openweatherapi, openweatherunits);
-  int httpCode = http.GET();
-  
-  String payload = http.getString();
-  Serial.println(httpCode);
-  Serial.println(payload);
-
-  http.end();
-  free(url);
-  
 }
 
 
