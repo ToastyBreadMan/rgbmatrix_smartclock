@@ -2,6 +2,8 @@
 #include <WiFi.h>
 #include <ezTime.h>
 #include <HTTPClient.h>
+#define ARDUINOJSON_USE_DOUBLE 1
+#define ARDUINOJSON_USE_LONG_LONG 1
 #include <ArduinoJson.h>
 #include "include/GFX_fonts/GFX_fonts/Font5x7Fixed.h"
 
@@ -15,7 +17,6 @@ const bool TWELVEHOUR = true;
 //----------
 
 //---Weather---
-#define ARDUINOJSON_USE_DOUBLE 1
 const char openweatherendpoint[] = "http://api.openweathermap.org/data/2.5/weather?q=";
 const char appid[] = "&appid=";
 const char openweatherunits[] = "&units=imperial";
@@ -84,20 +85,19 @@ struct weatherStruct {
   int humidity;
   int64_t sunrise;
   int64_t sunset;
-}
+};
 
-weatherStruct getWeather(char *url) {
+struct weatherStruct getWeather(char *url) {
   HTTPClient http;
   weatherStruct weather;
 
   weather.updated = false;
 
   http.begin(url);
-  //int httpCode = http.GET();
-  
+  int httpCode = http.GET();
   String payload = http.getString();
 
-  if(httpCode > 0){
+  if(httpCode != 200){
     Serial.print("HTTP GET failed with code:");
     Serial.println(httpCode);
     return weather;
@@ -120,21 +120,65 @@ weatherStruct getWeather(char *url) {
     }
   } else { 
     Serial.println("No weather...");
+    return weather;
   }
   
   JsonObject main = doc["main"];
   if(main != NULL) {
-    double main_temp = main["temp"];
-    if(main_temp != NULL) {
-      Serial.print("Weather temp = ");
-      Serial.println(main_temp);
-    } 
+    
+    weather.cur_temp = main["temp"];
+    weather.min_temp = main["temp_min"];
+    weather.max_temp = main["temp_max"];
+    weather.humidity = main["humidity"];
+    
   } else { 
     Serial.println("No main...");
+    return weather;
   }
 
+  JsonObject sys = doc["sys"];
+  if(sys != NULL){
+    weather.sunrise = sys["sunrise"];
+    weather.sunset = sys["sunset"];
+  } else {
+    Serial.println("No sys...");
+    return weather;    
+  }
+
+  weather.updated = true;
   http.end();
-  return payload;
+  
+  return weather;
+}
+
+void displayWeather(char *url) {
+  weatherStruct weather;
+
+  Serial.println("---Get Weather From---");
+  Serial.println(url);
+  Serial.println("----------------------");
+  
+  weather = getWeather(url);
+  if(!weather.updated){
+    Serial.println("Weather Failed to update!");
+    return;
+  }
+  
+  Serial.println("---Weather_Data---");
+  Serial.print("Weather id = ");
+  Serial.println(weather.id);
+  Serial.print("Weather cur_temp = ");
+  Serial.println(weather.cur_temp);
+  Serial.print("Weather max_temp = ");
+  Serial.println(weather.max_temp);
+  Serial.print("Weather min_temp = ");
+  Serial.println(weather.min_temp);
+  Serial.print("Weather humidity = ");
+  Serial.println(weather.humidity);
+  Serial.print("Weather sunrise = ");
+  Serial.println((int)weather.sunrise);
+  Serial.print("Weather sunset = ");
+  Serial.println((int)weather.sunset);
 }
 
 void setup() {
@@ -165,7 +209,7 @@ void setup() {
 
   char *url = (char*)calloc(1, sizeof(openweatherendpoint) + sizeof(openweathercityid) + sizeof(appid) + sizeof(openweatherapi) + sizeof(openweatherunits)+1);
   sprintf(url, "%s%s%s%s%s", openweatherendpoint, openweathercityid, appid, openweatherapi, openweatherunits);
-  getWeather(url);
+  displayWeather(url);
   free(url);
 
   waitForSync();
