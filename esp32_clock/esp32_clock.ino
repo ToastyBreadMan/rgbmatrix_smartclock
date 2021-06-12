@@ -11,7 +11,7 @@
 
 //---Danger Zone---
 #include "include/key.h"
-#define debug
+//#define debug
 //-----------------
 
 //---Time---
@@ -19,6 +19,7 @@
 #define TWELVEHOUR true;
 #define DAY_FONT Font5x7Fixed
 #define TIME_FONT Font5x7Fixed
+#define DATE_FONT Font4x5Fixed
 
 //----------
 
@@ -447,7 +448,7 @@ void displayWeatherTemp(double temp, int xoffset, int yoffset) {
 
   display.setFont(&TEMP_FONT);
   memset(buff, 0, sizeof(buff));
-  snprintf(buff, sizeof(buff), "%.1f°", temp);
+  snprintf(buff, sizeof(buff), "%.1fF", temp);
 
   display.setCursor(xoffset, yoffset);
   display.print(buff);
@@ -490,7 +491,6 @@ void setup() {
 
   waitForSync();
   getWeatherEvent();
-  //updateNTP();
   display_update_enable(true);
 }
 
@@ -499,13 +499,21 @@ void loop() {
   // put your main code here, to run repeatedly:
   display.clearDisplay();
 
-  display.setFont(&DAY_FONT);
   String time_day = TZ.dateTime("D");
   String time_hour = TZ.dateTime("H~:i");
-  display.setCursor(41, 8);
+  String time_date = TZ.dateTime("d~/m~/y");
+
+  display.setFont(&DAY_FONT);
+  display.setCursor(39, 8);
   display.print(time_day);
-  display.setCursor(36, 16);
+
+  //display.setFont(&TIME_FONT);
+  display.setCursor(34, 16);
   display.print(time_hour);
+
+  display.setFont(&DATE_FONT);
+  display.setCursor(32, 27);
+  display.print(time_date);
 
   displayWeather(0);
   display.showBuffer();
